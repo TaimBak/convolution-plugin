@@ -4,8 +4,12 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
   <MAINGROUP id="o41tQO" name="TDConvolve">
     <GROUP id="{C1D68720-4426-8C1D-0D19-FB0DC2363D33}" name="Source">
+      <FILE id="fjUNE2" name="ImpulseResponseSelector.h" compile="0" resource="0"
+            file="Source/ImpulseResponseSelector.h"/>
       <FILE id="gke5b9" name="PluginAlgorithm.cpp" compile="1" resource="0"
             file="Source/PluginAlgorithm.cpp"/>
+      <FILE id="o1uZdf" name="ImpulseResponseSelector.cpp" compile="1" resource="0"
+            file="Source/ImpulseResponseSelector.cpp"/>
       <FILE id="CCcSdW" name="PluginAlgorithm.h" compile="0" resource="0"
             file="Source/PluginAlgorithm.h"/>
       <FILE id="THx6Er" name="PluginProcessor.cpp" compile="1" resource="1"

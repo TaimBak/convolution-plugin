@@ -697,6 +697,9 @@
     <ClCompile Include="..\..\Source\PluginAlgorithm.cpp">
       <Filter>TDConvolve\Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\ImpulseResponseSelector.cpp">
+      <Filter>TDConvolve\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\PluginProcessor.cpp">
       <Filter>TDConvolve\Source</Filter>
     </ClCompile>
@@ -3666,6 +3669,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\ImpulseResponseSelector.h">
+      <Filter>TDConvolve\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\PluginAlgorithm.h">
       <Filter>TDConvolve\Source</Filter>
     </ClInclude>

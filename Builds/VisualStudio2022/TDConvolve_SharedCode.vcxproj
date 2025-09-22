@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\PluginAlgorithm.cpp"/>
+    <ClCompile Include="..\..\Source\ImpulseResponseSelector.cpp"/>
     <ClCompile Include="..\..\Source\PluginProcessor.cpp"/>
     <ClCompile Include="..\..\Source\PluginEditor.cpp"/>
     <ClCompile Include="..\..\..\JUCE_Win\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.cpp">
@@ -2932,6 +2933,7 @@
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_gui_extra.cpp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\ImpulseResponseSelector.h"/>
     <ClInclude Include="..\..\Source\PluginAlgorithm.h"/>
     <ClInclude Include="..\..\..\JUCE_Win\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.h"/>
     <ClInclude Include="..\..\..\JUCE_Win\modules\juce_audio_basics\buffers\juce_AudioChannelSet.h"/>

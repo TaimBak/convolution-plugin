@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "ImpulseResponseSelector.h"
 
 //==============================================================================
 /**
@@ -33,6 +34,7 @@ private:
 
     juce::TextButton loadBtn{ "Load WAV..." };
     juce::TextButton exportBtn{ "Export Processed..." };
+	ImpulseResponseSelector irSelector;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TDConvolveAudioProcessorEditor)
 };

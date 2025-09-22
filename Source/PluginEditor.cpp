@@ -19,6 +19,7 @@ TDConvolveAudioProcessorEditor::TDConvolveAudioProcessorEditor (TDConvolveAudioP
 
     addAndMakeVisible(loadBtn);
     addAndMakeVisible(exportBtn);
+	addAndMakeVisible(irSelector);
 
     loadBtn.onClick = [this]
     {
@@ -33,24 +34,24 @@ TDConvolveAudioProcessorEditor::TDConvolveAudioProcessorEditor (TDConvolveAudioP
             juce::Component::SafePointer<TDConvolveAudioProcessorEditor> safeThis(this);
 
             fileChooser->launchAsync(flags, [safeThis](const juce::FileChooser& fc)
+            {
+                if (safeThis == nullptr) return;
+
+                juce::File file = fc.getResult();
+                if (file.existsAsFile())
                 {
-                    if (safeThis == nullptr) return;
+                    if (!safeThis->audioProcessor.loadWavFile(file))
+                        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                            "Load Failed", "Could not read that WAV file.");
+                }
 
-                    auto file = fc.getResult();
-                    if (file.existsAsFile())
-                    {
-                        if (!safeThis->audioProcessor.loadWavFile(file))
-                            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                                "Load Failed", "Could not read that WAV file.");
-                    }
-
-                    safeThis->fileChooser.reset(); // release after callback
-                });
+                safeThis->fileChooser.reset(); // release after callback
+            });
         };
     };
 
     exportBtn.onClick = [this]
-        {
+    {
             fileChooser = std::make_unique<juce::FileChooser>(
                 "Choose where to save the processed WAV",
                 juce::File::getSpecialLocation(juce::File::userDesktopDirectory),
@@ -62,19 +63,29 @@ TDConvolveAudioProcessorEditor::TDConvolveAudioProcessorEditor (TDConvolveAudioP
             juce::Component::SafePointer<TDConvolveAudioProcessorEditor> safeThis(this);
 
             fileChooser->launchAsync(flags, [safeThis](const juce::FileChooser& fc)
-                {
-                    if (safeThis == nullptr) return;
+            {
+                if (safeThis == nullptr) return;
 
-                    auto outFile = fc.getResult().withFileExtension(".wav");
-                    if (outFile == juce::File{}) return;
+                juce::File outFile = fc.getResult().withFileExtension(".wav");
+                if (outFile == juce::File{}) return;
 
-                    if (!safeThis->audioProcessor.exportProcessedWav(outFile))
-                        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                            "Export Failed", "Could not write the WAV file.");
+                if (!safeThis->audioProcessor.exportProcessedWav(outFile))
+                    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                        "Export Failed", "Could not write the WAV file.");
 
-                    safeThis->fileChooser.reset();
-                });
-        };
+                safeThis->fileChooser.reset();
+            });
+    };
+
+    irSelector.onSelectionChanged = [this](int)
+    {
+        if (auto* item = irSelector.getSelectedIR())
+        {
+            // TODO: point processor to selected IR
+        }
+    };
+
+
 }
 
 TDConvolveAudioProcessorEditor::~TDConvolveAudioProcessorEditor()
@@ -89,7 +100,6 @@ void TDConvolveAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (juce::FontOptions (15.0f));
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
 }
 
 void TDConvolveAudioProcessorEditor::resized()
@@ -101,4 +111,6 @@ void TDConvolveAudioProcessorEditor::resized()
     loadBtn.setBounds(area.removeFromTop(30));
     area.removeFromTop(10);
     exportBtn.setBounds(area.removeFromTop(30));
+
+    irSelector.setBounds(10, 80, getWidth() - 20, 80);
 }
