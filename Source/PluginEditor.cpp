@@ -16,6 +16,65 @@ TDConvolveAudioProcessorEditor::TDConvolveAudioProcessorEditor (TDConvolveAudioP
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     setSize (400, 300);
+
+    addAndMakeVisible(loadBtn);
+    addAndMakeVisible(exportBtn);
+
+    loadBtn.onClick = [this]
+    {
+        {
+            fileChooser = std::make_unique<juce::FileChooser>(
+                "Select a WAV to load", juce::File{}, "*.wav");
+
+            auto flags = juce::FileBrowserComponent::openMode
+                | juce::FileBrowserComponent::canSelectFiles;
+
+            // Guard against the editor being closed while the dialog is up
+            juce::Component::SafePointer<TDConvolveAudioProcessorEditor> safeThis(this);
+
+            fileChooser->launchAsync(flags, [safeThis](const juce::FileChooser& fc)
+                {
+                    if (safeThis == nullptr) return;
+
+                    auto file = fc.getResult();
+                    if (file.existsAsFile())
+                    {
+                        if (!safeThis->audioProcessor.loadWavFile(file))
+                            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                                "Load Failed", "Could not read that WAV file.");
+                    }
+
+                    safeThis->fileChooser.reset(); // release after callback
+                });
+        };
+    };
+
+    exportBtn.onClick = [this]
+        {
+            fileChooser = std::make_unique<juce::FileChooser>(
+                "Choose where to save the processed WAV",
+                juce::File::getSpecialLocation(juce::File::userDesktopDirectory),
+                "*.wav");
+
+            auto flags = juce::FileBrowserComponent::saveMode
+                | juce::FileBrowserComponent::canSelectFiles;
+
+            juce::Component::SafePointer<TDConvolveAudioProcessorEditor> safeThis(this);
+
+            fileChooser->launchAsync(flags, [safeThis](const juce::FileChooser& fc)
+                {
+                    if (safeThis == nullptr) return;
+
+                    auto outFile = fc.getResult().withFileExtension(".wav");
+                    if (outFile == juce::File{}) return;
+
+                    if (!safeThis->audioProcessor.exportProcessedWav(outFile))
+                        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                            "Export Failed", "Could not write the WAV file.");
+
+                    safeThis->fileChooser.reset();
+                });
+        };
 }
 
 TDConvolveAudioProcessorEditor::~TDConvolveAudioProcessorEditor()
@@ -37,4 +96,9 @@ void TDConvolveAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
+
+    auto area = getLocalBounds().reduced(10);
+    loadBtn.setBounds(area.removeFromTop(30));
+    area.removeFromTop(10);
+    exportBtn.setBounds(area.removeFromTop(30));
 }

@@ -29,5 +29,10 @@ private:
     // access the processor object that created it.
     TDConvolveAudioProcessor& audioProcessor;
 
+    std::unique_ptr<juce::FileChooser> fileChooser;
+
+    juce::TextButton loadBtn{ "Load WAV..." };
+    juce::TextButton exportBtn{ "Export Processed..." };
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TDConvolveAudioProcessorEditor)
 };

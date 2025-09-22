@@ -23,6 +23,6 @@ public:
 private:
 	std::vector<float> ir;
     std::size_t        irSize;
-    std::vector<float> inputBuffer;
+    std::vector<float> delayBuffer;
     std::size_t        writeIndex;
 };

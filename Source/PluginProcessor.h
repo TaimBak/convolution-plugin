@@ -53,7 +53,18 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    //==============================================================================
+    bool loadWavFile(const juce::File& file);
+    bool exportProcessedWav(const juce::File& outFile, int blockSize = 512);
+
 private:
+
+    //==============================================================================
+    juce::AudioFormatManager formatManager;
+    juce::AudioBuffer<float> fileBuffer;   // holds the loaded audio
+    double fileSampleRate = 0.0;
+    bool fileLoaded = false;
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TDConvolveAudioProcessor)
 };

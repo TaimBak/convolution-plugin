@@ -23,6 +23,7 @@ TDConvolveAudioProcessor::TDConvolveAudioProcessor()
                        )
 #endif
 {
+    formatManager.registerBasicFormats();
 }
 
 TDConvolveAudioProcessor::~TDConvolveAudioProcessor()
@@ -200,6 +201,117 @@ void TDConvolveAudioProcessor::setStateInformation (const void* data, int sizeIn
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+bool TDConvolveAudioProcessor::loadWavFile(const juce::File& file)
+{
+    fileLoaded = false;
+    fileBuffer.setSize(0, 0);
+    fileSampleRate = 0.0;
+
+    std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(file));
+    if (!reader) return false;
+
+    const int length = (int)reader->lengthInSamples;
+    if (length <= 0) return false;
+
+    fileSampleRate = reader->sampleRate;
+
+    // allocate buffer with the file's channel count and length
+    fileBuffer.setSize((int)reader->numChannels, (int)length);
+    fileBuffer.clear();
+
+    // read entire file into buffer
+    const bool ok = reader->read(&fileBuffer,              // dest buffer
+        0,                        // dest start sample
+        (int)length,             // num samples
+        0,                        // reader start sample
+        true,                     // use left channel?
+        true);                    // use right channel?
+    fileLoaded = ok;
+    return ok;
+}
+
+bool TDConvolveAudioProcessor::exportProcessedWav(const juce::File& outFile, int blockSize)
+{
+    if (!fileLoaded || fileBuffer.getNumSamples() == 0)
+        return false;
+
+    // Make sure our bus layout matches how we will call processBlock.
+    const int inCh = getTotalNumInputChannels();
+    const int outCh = getTotalNumOutputChannels();
+
+    if (inCh == 0 || outCh == 0)
+        return false;
+
+    // Prepare our processor at the file's sample rate
+    prepareToPlay(fileSampleRate, blockSize);
+
+    const int numSamples = fileBuffer.getNumSamples();
+
+    // Output buffer sized to outCh and total samples
+    juce::AudioBuffer<float> outBuffer(outCh, numSamples);
+    outBuffer.clear();
+
+    juce::MidiBuffer dummyMidi;
+
+    // A working block buffer that matches the plug-in's IO channel counts
+    juce::AudioBuffer<float> workBuffer(std::max(inCh, outCh), blockSize);
+
+    for (int pos = 0; pos < numSamples; pos += blockSize)
+    {
+        const int thisBlock = std::min(blockSize, numSamples - pos);
+
+        // Resize work buffer for last partial block (keeps channels)
+        workBuffer.setSize(std::max(inCh, outCh), thisBlock, false, false, true);
+        workBuffer.clear();
+
+        // Copy file input into the processor's input channels
+        // (handle mono/stereo mismatches by repeating or mixing)
+        for (int ch = 0; ch < inCh; ++ch)
+        {
+            const int srcCh = juce::jmin(ch, fileBuffer.getNumChannels() - 1);
+            workBuffer.copyFrom(ch, 0, fileBuffer, srcCh, pos, thisBlock);
+        }
+
+        // Run your actual DSP
+        processBlock(workBuffer, dummyMidi);
+
+        // Copy processed result to outBuffer (use out channels)
+        for (int ch = 0; ch < outCh; ++ch)
+        {
+            const int srcCh = juce::jmin(ch, workBuffer.getNumChannels() - 1);
+            outBuffer.copyFrom(ch, pos, workBuffer, srcCh, 0, thisBlock);
+        }
+    }
+
+    releaseResources();
+
+    // Write outBuffer to WAV
+    juce::WavAudioFormat wav;
+    std::unique_ptr<juce::FileOutputStream> stream(outFile.createOutputStream());
+
+    if (!stream || !stream->openedOk())
+        return false;
+
+    // Choose bits per sample (16 or 24). 24 keeps more dynamic detail.
+    const int bitsPerSample = 24;
+
+    std::unique_ptr<juce::AudioFormatWriter> writer(
+        wav.createWriterFor(stream.get(),
+            fileSampleRate,
+            (unsigned int)outCh,
+            bitsPerSample,
+            {}, 0));
+
+    if (!writer) return false;
+
+    // If the writer takes ownership, release the stream pointer here:
+    stream.release();
+
+    const bool wrote = writer->writeFromAudioSampleBuffer(outBuffer, 0, outBuffer.getNumSamples());
+
+    return wrote;
 }
 
 //==============================================================================
