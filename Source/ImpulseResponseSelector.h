@@ -27,7 +27,7 @@ public:
 
     ImpulseResponseSelector();
 
-    // === Public API ===
+    // API
     int getNumIRs() const noexcept { return (int)irs.size(); }
     int getSelectedIndex() const noexcept { return selectedIndex; }
     const IRItem* getIR(int index) const noexcept

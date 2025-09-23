@@ -237,14 +237,14 @@ bool TDConvolveAudioProcessor::exportProcessedWav(const juce::File& outFile, int
     if (!fileLoaded || fileBuffer.getNumSamples() == 0)
         return false;
 
-    // Make sure our bus layout matches how we will call processBlock.
+    // Make sure bus layout matches how processBlock will be called
     const int inCh = getTotalNumInputChannels();
     const int outCh = getTotalNumOutputChannels();
 
     if (inCh == 0 || outCh == 0)
         return false;
 
-    // Prepare our processor at the file's sample rate
+    // Prepare processor at the file's sample rate
     prepareToPlay(fileSampleRate, blockSize);
 
     const int numSamples = fileBuffer.getNumSamples();
@@ -255,29 +255,28 @@ bool TDConvolveAudioProcessor::exportProcessedWav(const juce::File& outFile, int
 
     juce::MidiBuffer dummyMidi;
 
-    // A working block buffer that matches the plug-in's IO channel counts
+    // Block buffer that matches IO channel counts
     juce::AudioBuffer<float> workBuffer(std::max(inCh, outCh), blockSize);
 
     for (int pos = 0; pos < numSamples; pos += blockSize)
     {
         const int thisBlock = std::min(blockSize, numSamples - pos);
 
-        // Resize work buffer for last partial block (keeps channels)
+        // Resize work buffer for last partial block
         workBuffer.setSize(std::max(inCh, outCh), thisBlock, false, false, true);
         workBuffer.clear();
 
         // Copy file input into the processor's input channels
-        // (handle mono/stereo mismatches by repeating or mixing)
         for (int ch = 0; ch < inCh; ++ch)
         {
             const int srcCh = juce::jmin(ch, fileBuffer.getNumChannels() - 1);
             workBuffer.copyFrom(ch, 0, fileBuffer, srcCh, pos, thisBlock);
         }
 
-        // Run your actual DSP
+        // DSP
         processBlock(workBuffer, dummyMidi);
 
-        // Copy processed result to outBuffer (use out channels)
+        // Copy processed result to outBuffer
         for (int ch = 0; ch < outCh; ++ch)
         {
             const int srcCh = juce::jmin(ch, workBuffer.getNumChannels() - 1);
@@ -294,7 +293,6 @@ bool TDConvolveAudioProcessor::exportProcessedWav(const juce::File& outFile, int
     if (!stream || !stream->openedOk())
         return false;
 
-    // Choose bits per sample (16 or 24). 24 keeps more dynamic detail.
     const int bitsPerSample = 24;
 
     std::unique_ptr<juce::AudioFormatWriter> writer(
@@ -306,7 +304,6 @@ bool TDConvolveAudioProcessor::exportProcessedWav(const juce::File& outFile, int
 
     if (!writer) return false;
 
-    // If the writer takes ownership, release the stream pointer here:
     stream.release();
 
     const bool wrote = writer->writeFromAudioSampleBuffer(outBuffer, 0, outBuffer.getNumSamples());
