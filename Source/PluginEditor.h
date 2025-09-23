@@ -24,6 +24,7 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+	
 
 private:
     // This reference is provided as a quick way for your editor to
@@ -34,7 +35,7 @@ private:
 
     juce::TextButton loadBtn{ "Load WAV..." };
     juce::TextButton exportBtn{ "Export Processed..." };
-	ImpulseResponseSelector irSelector;
+    ImpulseResponseSelector irSelector;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TDConvolveAudioProcessorEditor)
 };

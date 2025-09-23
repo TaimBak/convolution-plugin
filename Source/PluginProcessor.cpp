@@ -9,6 +9,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "PluginAlgorithm.h"
+#include "ImpulseResponseSelector.h"
+
 
 //==============================================================================
 TDConvolveAudioProcessor::TDConvolveAudioProcessor()
@@ -137,7 +139,14 @@ void TDConvolveAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    std::vector<float> ir = { 3.0f, 2.0f, 1.0f }; // Example impulse response
+	// Convert the IR data to a format the convolver can use
+	std::vector <float> ir;
+    int irSize = currentIR->buffer.getNumSamples();
+
+    for (int i = 0; i < irSize; ++i)
+        ir.push_back(currentIR->buffer.getSample(0, i)); // mono IR
+
+	//Create the convolver
     TimeDomainConvolver convolver(ir);
 
     // In case we have more outputs than inputs, this code clears any output
@@ -157,22 +166,13 @@ void TDConvolveAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     // interleaved by keeping the same state.
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
-		buffer.clear(channel, 0, buffer.getNumSamples());
-        for (std::size_t n = 0; n < buffer.getNumSamples(); n++)
-        {
-            if (n < 5)
-                buffer.setSample(channel, n, n + 1.0f);
-            else buffer.setSample(channel, n, 0.0f);
-
-        }
 
         juce::AudioBuffer<float> tempBuffer = buffer;
         auto* inputData = tempBuffer.getWritePointer (channel);
 
         auto* outputData = buffer.getWritePointer(channel);
 
-        // ..do something to the data...
-		convolver.processBlock(inputData, outputData,  10);
+		convolver.processBlock(inputData, outputData,  buffer.getNumSamples());
     }
 
     return;
@@ -223,11 +223,11 @@ bool TDConvolveAudioProcessor::loadWavFile(const juce::File& file)
 
     // read entire file into buffer
     const bool ok = reader->read(&fileBuffer,              // dest buffer
-        0,                        // dest start sample
-        (int)length,             // num samples
-        0,                        // reader start sample
-        true,                     // use left channel?
-        true);                    // use right channel?
+        0,                                                 // dest start sample
+        (int)length,                                       // num samples
+        0,                                                 // reader start sample
+        true,                                              // use left channel?
+        true);                                             // use right channel?
     fileLoaded = ok;
     return ok;
 }

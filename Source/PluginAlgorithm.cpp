@@ -10,6 +10,8 @@
 
 #include "PluginAlgorithm.h"
 
+#define MIX 0.7f
+
 
 TimeDomainConvolver::TimeDomainConvolver(const std::vector<float>& inputIR)
     : ir(inputIR), irSize(ir.size()), delayBuffer(std::max<std::size_t>(1, ir.size()), 0.0f), writeIndex(0)
@@ -19,6 +21,7 @@ TimeDomainConvolver::TimeDomainConvolver(const std::vector<float>& inputIR)
 
 void TimeDomainConvolver::reset()
 {
+    // Sets all to 0.0f to remove any -t values
     std::fill(delayBuffer.begin(), delayBuffer.end(), 0.0f);
     writeIndex= 0;
 };
@@ -53,7 +56,8 @@ void TimeDomainConvolver::processBlock(const float* in, float* out, std::size_t 
 
     for (std::size_t n = 0; n < numSamples; n++)
     {
-        out[n] = processSample(in[n]);
+		// Dry + Wet mix
+        out[n] = in[n] + (processSample(in[n] * MIX));
         diagnostics[n] = out[n]; // For debugging purposes
     }
 

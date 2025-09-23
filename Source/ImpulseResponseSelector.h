@@ -37,7 +37,7 @@ public:
     }
     const IRItem* getSelectedIR() const noexcept { return getIR(getSelectedIndex()); }
 
-    // Optional callbacks
+    // Callbacks
     std::function<void(int newIndex)> onSelectionChanged;
     std::function<void()> onListRefreshed;
 
@@ -56,7 +56,6 @@ private:
     std::vector<std::unique_ptr<IRItem>> irs;
     int selectedIndex = -1;
 
-    // Async chooser must stay alive while open
     std::unique_ptr<juce::FileChooser> folderChooser;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ImpulseResponseSelector)

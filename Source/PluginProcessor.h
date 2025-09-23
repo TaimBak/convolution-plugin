@@ -9,6 +9,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "ImpulseResponseSelector.h"
 
 //==============================================================================
 /**
@@ -54,8 +55,12 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     //==============================================================================
+	void setCurrentIR(const ImpulseResponseSelector::IRItem* ir) { currentIR = ir; }
+
+    //==============================================================================
+
     bool loadWavFile(const juce::File& file);
-    bool exportProcessedWav(const juce::File& outFile, int blockSize = 512);
+    bool exportProcessedWav(const juce::File& outFile, int blockSize = 480);
 
 private:
 
@@ -64,6 +69,9 @@ private:
     juce::AudioBuffer<float> fileBuffer;   // holds the loaded audio
     double fileSampleRate = 0.0;
     bool fileLoaded = false;
+
+    //==============================================================================
+	const ImpulseResponseSelector::IRItem* currentIR = nullptr; // pointer to the current IR
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TDConvolveAudioProcessor)

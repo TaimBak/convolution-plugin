@@ -21,26 +21,26 @@ ImpulseResponseSelector::ImpulseResponseSelector()
     addAndMakeVisible(loadFolderButton);
     loadFolderButton.setButtonText("Load IR Folder...");
     loadFolderButton.onClick = [this]
-        {
-            folderChooser = std::make_unique<juce::FileChooser>(
-                "Select a folder containing .wav impulse responses",
-                juce::File{},
-                juce::String{} // no wildcard for directories
-            );
+    {
+        folderChooser = std::make_unique<juce::FileChooser>(
+            "Select a folder containing .wav impulse responses",
+            juce::File{},
+            juce::String{}
+    );
 
             auto flags = juce::FileBrowserComponent::openMode
                 | juce::FileBrowserComponent::canSelectDirectories;
 
             juce::Component::SafePointer<ImpulseResponseSelector> safeThis(this);
             folderChooser->launchAsync(flags, [safeThis](const juce::FileChooser& fc)
-                {
-                    if (safeThis == nullptr) return;
-                    auto dir = fc.getResult();
-                    if (dir.isDirectory())
-                        safeThis->loadIRsFromDirectory(dir);
+            {
+                if (safeThis == nullptr) return;
+                auto dir = fc.getResult();
+                if (dir.isDirectory())
+                    safeThis->loadIRsFromDirectory(dir);
 
-                    safeThis->folderChooser.reset();
-                });
+                safeThis->folderChooser.reset();
+            });
         };
 
     addAndMakeVisible(irCombo);
@@ -64,7 +64,7 @@ void ImpulseResponseSelector::resized()
 
 void ImpulseResponseSelector::loadIRsFromDirectory(const juce::File& directory)
 {
-    // Gather *.wav files (recursive)
+    // Get *.wav files
     juce::Array<juce::File> files;
     directory.findChildFiles(files, juce::File::findFiles, true, "*.wav");
 

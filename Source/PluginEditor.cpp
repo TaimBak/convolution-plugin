@@ -80,9 +80,7 @@ TDConvolveAudioProcessorEditor::TDConvolveAudioProcessorEditor (TDConvolveAudioP
     irSelector.onSelectionChanged = [this](int)
     {
         if (auto* item = irSelector.getSelectedIR())
-        {
-            // TODO: point processor to selected IR
-        }
+            audioProcessor.setCurrentIR(item);
     };
 
 
