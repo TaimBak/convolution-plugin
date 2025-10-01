@@ -9,16 +9,16 @@
 namespace BinaryData
 {
     extern const char*   PluginProcessor_cpp;
-    const int            PluginProcessor_cppSize = 10780;
+    const int            PluginProcessor_cppSize = 10546;
 
     extern const char*   PluginProcessor_h;
-    const int            PluginProcessor_hSize = 2801;
+    const int            PluginProcessor_hSize = 3191;
 
     extern const char*   PluginEditor_cpp;
-    const int            PluginEditor_cppSize = 3932;
+    const int            PluginEditor_cppSize = 4104;
 
     extern const char*   PluginEditor_h;
-    const int            PluginEditor_hSize = 1213;
+    const int            PluginEditor_hSize = 1295;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
     const int namedResourceListSize = 4;
