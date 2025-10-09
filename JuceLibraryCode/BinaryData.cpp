@@ -148,6 +148,10 @@ static const unsigned char temp_binary_data_0[] =
 "\r\n"
 "void TDConvolveAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)\r\n"
 "{\r\n"
+"    // Early out if no IR is loaded or invalid\r\n"
+"    if (currentIR == nullptr || currentIR->buffer.getNumSamples() == 0)\r\n"
+"        return;\r\n"
+"    \r\n"
 "    juce::ScopedNoDenormals noDenormals;\r\n"
 "    auto totalNumInputChannels  = getTotalNumInputChannels();\r\n"
 "    auto totalNumOutputChannels = getTotalNumOutputChannels();\r\n"
@@ -160,23 +164,12 @@ static const unsigned char temp_binary_data_0[] =
 "        ir.push_back(currentIR->buffer.getSample(0, i)); // mono IR\r\n"
 "\r\n"
 "\t//Create the convolver\r\n"
+"    //TODO: Restructure to create a cashed version of convolver as to repeat the allocations\r\n"
 "    TimeDomainConvolver convolver(ir);\r\n"
 "\r\n"
-"    // In case we have more outputs than inputs, this code clears any output\r\n"
-"    // channels that didn't contain input data, (because these aren't\r\n"
-"    // guaranteed to be empty - they may contain garbage).\r\n"
-"    // This is here to avoid people getting screaming feedback\r\n"
-"    // when they first compile a plugin, but obviously you don't need to keep\r\n"
-"    // this code if your algorithm always overwrites all the output channels.\r\n"
 "    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)\r\n"
 "        buffer.clear (i, 0, buffer.getNumSamples());\r\n"
 "\r\n"
-"    // This is the place where you'd normally do the guts of your plugin's\r\n"
-"    // audio processing...\r\n"
-"    // Make sure to reset the state if your inner loop is processing\r\n"
-"    // the samples and the outer loop is handling the channels.\r\n"
-"    // Alternatively, you can process the samples with the channels\r\n"
-"    // interleaved by keeping the same state.\r\n"
 "    for (int channel = 0; channel < totalNumInputChannels; ++channel)\r\n"
 "    {\r\n"
 "\r\n"
@@ -593,7 +586,7 @@ const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
 
     switch (hash)
     {
-        case 0x687677e3:  numBytes = 10546; return PluginProcessor_cpp;
+        case 0x687677e3:  numBytes = 9998; return PluginProcessor_cpp;
         case 0xe1bd86a8:  numBytes = 3191; return PluginProcessor_h;
         case 0xd36ebf84:  numBytes = 4104; return PluginEditor_cpp;
         case 0xebb54289:  numBytes = 1295; return PluginEditor_h;

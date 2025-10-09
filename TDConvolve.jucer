@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="J7nMhZ" name="TDConvolve" projectType="audioplug" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" pluginVST3Category="Fx,Reverb">
   <MAINGROUP id="o41tQO" name="TDConvolve">
     <GROUP id="{C1D68720-4426-8C1D-0D19-FB0DC2363D33}" name="Source">
       <FILE id="fjUNE2" name="ImpulseResponseSelector.h" compile="0" resource="0"
