@@ -52,13 +52,10 @@ float TimeDomainConvolver::processSample(float x)
 
 void TimeDomainConvolver::processBlock(const float* in, float* out, std::size_t numSamples)
 {
-	std::vector<float> diagnostics(numSamples);
-
     for (std::size_t n = 0; n < numSamples; n++)
     {
 		// Dry + Wet mix
-        out[n] = in[n] + (processSample(in[n] * MIX));
-        diagnostics[n] = out[n]; // For debugging purposes
+        out[n] = (1-MIX)*in[n] + processSample(in[n] * MIX);
     }
 
     return;
