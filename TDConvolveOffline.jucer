@@ -4,6 +4,10 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
   <MAINGROUP id="srD8Gn" name="TDConvolveOffline">
     <GROUP id="{EED1A1F8-1C76-4205-F531-6296DDAF90F9}" name="Source">
+      <FILE id="WPaDbi" name="FreqDomainConvolver.h" compile="0" resource="0"
+            file="Source/FreqDomainConvolver.h"/>
+      <FILE id="zImBeq" name="FreqDomainConvolver.cpp" compile="1" resource="0"
+            file="Source/FreqDomainConvolver.cpp"/>
       <FILE id="RfA6ud" name="PluginAlgorithm.cpp" compile="1" resource="0"
             file="Source/PluginAlgorithm.cpp"/>
       <FILE id="hYVBy5" name="PluginAlgorithm.h" compile="0" resource="0"
