@@ -41,7 +41,7 @@ MainComponent::MainComponent()
     addAndMakeVisible (mixLabel);
 
     addAndMakeVisible (normalizeToggle);
-    normalizeToggle.setToggleState (true, juce::dontSendNotification);
+    normalizeToggle.setToggleState (false, juce::dontSendNotification);
 
     // Progress bar
     addAndMakeVisible(progressBar);
@@ -261,6 +261,45 @@ void MainComponent::loadIRAsync()
                 acc += irBuf.getReadPointer (c)[n];
             monoIR[(size_t) n] = static_cast<float> (acc / juce::jmax (1, irCh));
         }
+        
+//        // ===== DEBUG: Print IR statistics =====
+//        double absSum = 0.0;
+//        double energySum = 0.0;
+//        float peakVal = 0.0f;
+//
+//        for (size_t i = 0; i < monoIR.size(); ++i)
+//        {
+//            float s = monoIR[i];
+//            absSum += std::abs(s);
+//            energySum += s * s;
+//            peakVal = std::max(peakVal, std::abs(s));
+//        }
+//
+//        DBG("IR samples: " << monoIR.size());
+//        DBG("IR peak value: " << peakVal);
+//        DBG("IR sum(|h|): " << absSum);
+//        DBG("IR sqrt(sum(h²)): " << std::sqrt(energySum));
+//        // ======================================
+//        
+//        // Normalize for approximately unity gain through convolution
+//        double energySum = 0.0;
+//        for (size_t i = 0; i < monoIR.size(); ++i)
+//            energySum += static_cast<double>(monoIR[i]) * static_cast<double>(monoIR[i]);
+//
+//        if (energySum > 0.0)
+//        {
+//            // Scale target based on IR length relative to a "reference" length
+//            const double refLength = 1024.0;  // Reference IR length
+//            const double lengthFactor = std::sqrt(monoIR.size() / refLength);
+//            const double target = 0.7 * lengthFactor;
+//            
+//            const float compensation = static_cast<float>(target / std::sqrt(energySum));
+//            
+//            for (size_t i = 0; i < monoIR.size(); ++i)
+//                monoIR[i] *= compensation;
+//                
+//            DBG("IR compensation factor: " << compensation);
+//        }
 
         impulseResponse = std::move (monoIR);
         irSampleRateHz = reader->sampleRate;
@@ -342,7 +381,7 @@ void MainComponent::processOfflineConvolutionTD()
                 {
                     const float x = inPtr[done + i];               // dry input
                     const float yWet = conv.processSample(x);     // wet
-                    outPtr[done + i] = dryMix * x + wetMix * yWet; // linear
+                    outPtr[done + i] = (dryMix * x) + (wetMix * yWet); // linear
                 }
 
                 done += block;
@@ -410,6 +449,7 @@ void MainComponent::processOfflineConvolutionFD()
     // Wet/Dry (0..1)
     const float wetMix = juce::jlimit (0.0f, 1.0f, (float) (mixSlider.getValue() / 100.0));
     const float dryMix = 1.0f - wetMix;
+    const float wetGain = 90.0;  // ≈ 2048
 
     auto in  = std::make_unique<juce::AudioBuffer<float>>(*audioBuffer);
     auto out = std::make_unique<juce::AudioBuffer<float>>(numCh, numSmps); // temp (resize per-ch)
@@ -418,7 +458,7 @@ void MainComponent::processOfflineConvolutionFD()
     auto safe = juce::Component::SafePointer<MainComponent>(this);
 
     std::thread([safe, in = std::move(in), out = std::move(out), ir = std::move(ir),
-                 numCh, numSmps, dryMix, wetMix]() mutable
+                 numCh, numSmps, dryMix, wetMix, wetGain]() mutable
     {
         juce::ScopedNoDenormals noDenormals;
         juce::FloatVectorOperations::disableDenormalisedNumberSupport();
@@ -440,6 +480,10 @@ void MainComponent::processOfflineConvolutionFD()
         // Progress Bar parameter setup, determine the time it will take so the bar will update correctly
         const double totalWork = (double) numCh * (double) outLen;
 
+        // ===== DEBUG: Measure actual signal levels =====
+        float dryPeak = 0.0f;
+        float wetPeak = 0.0f;
+        
         for (int ch = 0; ch < numCh; ++ch)
         {
             // Create convolver for current channel
@@ -463,7 +507,11 @@ void MainComponent::processOfflineConvolutionFD()
                 for (int k = 0; k < n; ++k)
                 {
                     const float dry = inPtr[i + k];
-                    const float wet = yBlock[(size_t) k];
+                    const float wet = yBlock[(size_t) k] * wetGain;
+                    
+                    dryPeak = std::max(dryPeak, std::abs(dry));
+                    wetPeak = std::max(wetPeak, std::abs(wet));
+                    
                     outPtr[i + k] = dryMix * dry + wetMix * wet; // Sir-mix-a-lot
                 }
                 
@@ -483,7 +531,7 @@ void MainComponent::processOfflineConvolutionFD()
             {
                 auto tail = conv.flush(); // exactly N-1 samples
                 for (size_t t = 0; t < tail.size(); ++t)
-                    outPtr[numSmps + (int) t] = wetMix * tail[t];
+                    outPtr[numSmps + (int) t] = wetMix * tail[t] * wetGain;
 
                 processedOut += (int) tail.size();
 
@@ -496,6 +544,10 @@ void MainComponent::processOfflineConvolutionFD()
                 else { return; }
             }
         }
+        
+        DBG("Dry peak: " << dryPeak);
+        DBG("Wet peak (with gain): " << wetPeak);
+        DBG("Ratio (dry/wet): " << (wetPeak > 0 ? dryPeak / wetPeak : 0));
 
         const double elapsedSec =
             std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();

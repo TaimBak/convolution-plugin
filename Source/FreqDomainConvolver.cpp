@@ -56,7 +56,7 @@
         fft.perform(timeC.data(), Xspec.data(), false);
 
         // 2. Multiply w/ IR
-        for (int k = 0; k < #; ++k)
+        for (int k = 0; k < K; ++k)
             Yspec[k] = Xspec[k] * Hspec[k]; // <- Hspec done during concolver init
 
         // 3. FD -> TD (IFFT)
