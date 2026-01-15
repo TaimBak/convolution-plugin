@@ -449,7 +449,7 @@ void MainComponent::processOfflineConvolutionFD()
     // Wet/Dry (0..1)
     const float wetMix = juce::jlimit (0.0f, 1.0f, (float) (mixSlider.getValue() / 100.0));
     const float dryMix = 1.0f - wetMix;
-    const float wetGain = 90.0;  // ≈ 2048
+    const float wetGain = 9113.0; //DBG
 
     auto in  = std::make_unique<juce::AudioBuffer<float>>(*audioBuffer);
     auto out = std::make_unique<juce::AudioBuffer<float>>(numCh, numSmps); // temp (resize per-ch)
