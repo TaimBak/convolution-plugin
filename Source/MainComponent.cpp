@@ -303,7 +303,9 @@ void MainComponent::loadIRAsync()
 
         impulseResponse = std::move (monoIR);
         irSampleRateHz = reader->sampleRate;
-
+        
+        void findGainCompensation();
+        
         juce::String srNote;
         if (audioBuffer && std::abs (irSampleRateHz - sampleRateHz) > 1.0)
             srNote = juce::String::formatted("  (SR mismatch: IR %.0f Hz, Audio %.0f Hz)", irSampleRateHz, sampleRateHz);
@@ -449,7 +451,8 @@ void MainComponent::processOfflineConvolutionFD()
     // Wet/Dry (0..1)
     const float wetMix = juce::jlimit (0.0f, 1.0f, (float) (mixSlider.getValue() / 100.0));
     const float dryMix = 1.0f - wetMix;
-    const float wetGain = 9113.0; //DBG
+    //const float wetGain = irGainCompensation; //DBG
+    const float wetGain = 1.0; //DBG
 
     auto in  = std::make_unique<juce::AudioBuffer<float>>(*audioBuffer);
     auto out = std::make_unique<juce::AudioBuffer<float>>(numCh, numSmps); // temp (resize per-ch)
@@ -465,6 +468,8 @@ void MainComponent::processOfflineConvolutionFD()
 
         const auto start = std::chrono::steady_clock::now();
 
+        // Perform single K-Point FFT on IR that will be used over and over with each iter of B
+        
         // Set block size B and FFT order (K = nextPow2(B+N-1))
         const int N = (int) ir.size();
         const int B = 128; // TODO: Allow for manipulation with the GUI
@@ -686,4 +691,33 @@ void MainComponent::normalizeToDbFS (float targetDb)
     const float scale = targetLinear / peak;
     for (int ch = 0; ch < audioBuffer->getNumChannels(); ++ch)
         audioBuffer->applyGain (ch, 0, audioBuffer->getNumSamples(), scale);
+}
+
+void MainComponent::findGainCompensation()
+{
+    // Calculate IR gain and set wet gain compensation for this IR
+        const int B = 128;
+        const int N = (int) impulseResponse.size();
+        int need = B + N - 1;
+        int K = juce::nextPowerOfTwo(need);
+        int fftOrder = 0;
+        while ((1 << fftOrder) < K) ++fftOrder;
+
+        FreqDomainConvolver testConv(impulseResponse, fftOrder, B);
+
+        // Create a test signal: single impulse
+        std::vector<float> testIn(B, 0.0f);
+        testIn[0] = 1.0f;
+
+        auto testOut = testConv.processBlock(testIn);
+
+        // Find peak output (should equal IR peak after convolution)
+        float outPeak = 0.0f;
+        for (const auto& s : testOut)
+            outPeak = std::max(outPeak, std::abs(s));
+
+        // Compensation = 1 / outPeak (so output matches input level)
+        irGainCompensation = (outPeak > 1e-10f) ? (1.0f / outPeak) : 1.0f;
+
+        DBG("IR gain compensation: " << irGainCompensation);
 }

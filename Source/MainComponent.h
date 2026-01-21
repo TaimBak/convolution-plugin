@@ -140,6 +140,7 @@ private:
     // ===== IR data (mono) =====
     std::vector<float> impulseResponse; // mono IR used for all channels
     double irSampleRateHz = 44100.0;
+    float irGainCompensation = 1.0f;
 
     // ===== File choosers must persist during async ops =====
     std::unique_ptr<juce::FileChooser> openAudioChooser;
@@ -154,11 +155,12 @@ private:
     void exportWavAsync();
 
     // ===== Helpers =====
-    void setStatus (const juce::String& msg);
-    void setAudioInfo (const juce::String& msg);
-    void setIRInfo (const juce::String& msg);
+    void setStatus(const juce::String& msg);
+    void setAudioInfo(const juce::String& msg);
+    void setIRInfo(const juce::String& msg);
     void updateEnables();
-    void normalizeToDbFS (float targetDb);
+    void normalizeToDbFS(float targetDb);
+    void findGainCompensation();
 
     // Timer: mirror atomic progress -> double for ProgressBar
     void timerCallback() override;
