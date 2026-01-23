@@ -193,9 +193,9 @@ void MainComponent::loadAudioAsync()
         sampleRateHz = reader->sampleRate;
         originalNumChannels = numChannels;
 
-        setAudioInfo (juce::String::formatted(
-            "Audio: %s  |  %d ch, %.0f Hz, %d samples",
-            file.getFileName().toRawUTF8(), numChannels, sampleRateHz, numSamples));
+        const auto fileName = file.getFileName();
+        setAudioInfo("Audio: " + file.getFileName() +
+            juce::String::formatted("  |  %d ch, %.0f Hz, %d samples", numChannels, sampleRateHz, numSamples));
 
         setStatus ("Audio loaded.");
         openAudioChooser.reset();
@@ -310,9 +310,9 @@ void MainComponent::loadIRAsync()
         if (audioBuffer && std::abs (irSampleRateHz - sampleRateHz) > 1.0)
             srNote = juce::String::formatted("  (SR mismatch: IR %.0f Hz, Audio %.0f Hz)", irSampleRateHz, sampleRateHz);
 
-        setIRInfo (juce::String::formatted(
-            "IR: %s  |  1 ch, %.0f Hz, %d taps%s",
-            file.getFileName().toRawUTF8(), irSampleRateHz, irSamples, srNote.toRawUTF8()));
+        const auto irFileName = file.getFileName();
+        setIRInfo("IR: " + file.getFileName() +
+            juce::String::formatted("  |  1 ch, %.0f Hz, %d taps", irSampleRateHz, irSamples) + srNote);
 
         setStatus ("IR loaded.");
         openIRChooser.reset();
@@ -452,7 +452,7 @@ void MainComponent::processOfflineConvolutionFD()
     const float wetMix = juce::jlimit (0.0f, 1.0f, (float) (mixSlider.getValue() / 100.0));
     const float dryMix = 1.0f - wetMix;
     //const float wetGain = irGainCompensation; //DBG
-    const float wetGain = 1.0; //DBG
+    const float wetGain = 9112.95; //DBG
 
     auto in  = std::make_unique<juce::AudioBuffer<float>>(*audioBuffer);
     auto out = std::make_unique<juce::AudioBuffer<float>>(numCh, numSmps); // temp (resize per-ch)
