@@ -14,68 +14,64 @@ SpectralConvolverAudioProcessor::SpectralConvolverAudioProcessor()
       )
 #endif
 {
-    
-    DBG("!!!!!! CONSTRUCTOR CALLED - DEBUG BUILD !!!!!!");
-    
-    
-    juce::Logger::writeToLog("SPECTRAL CONVOLVER LOADED");
 
-    // Create a file as proof the code ran
-    juce::File("/tmp/plugin_loaded.txt").replaceWithText("Plugin loaded at " +
-        juce::Time::getCurrentTime().toString(true, true));
-    
-    
-//  const int defaultIRLength = 4410; // 100ms at 44.1kHz
-//  std::vector<float> defaultIR(defaultIRLength);
-//
-//
-//  for (int i = 0; i < defaultIRLength; ++i) {
-//    float t = static_cast<float>(i) / 44100.0f;
-//    defaultIR[i] = std::exp(-t * 10.0f) * ((i == 0) ? 1.0f : 0.3f);
-//  }
-//
-//  // Normalize
-//  float maxVal = 0.0f;
-//  for (auto &s : defaultIR)
-//    maxVal = std::max(maxVal, std::abs(s));
-//  if (maxVal > 0.0f)
-//    for (auto &s : defaultIR)
-//      s /= maxVal;
-//
-    
-    
-//    const int maxIRLength = 14000;
-//    const int defaultIRLength = maxIRLength;
-//    std::vector<float> defaultIR(defaultIRLength);
-//
-//    for (int i = 0; i < defaultIRLength; ++i)
-//    {
-//        float t = static_cast<float>(i) / 44100.0f;
-//        defaultIR[i] = std::exp(-t * 3.0f) * ((i == 0) ? 1.0f : 0.2f);
-//    }
-//   
-//
-//    float sumSquares = 0.0f;
-//    for (auto& s : defaultIR)
-//        sumSquares += s * s;
-//    float rms = std::sqrt(sumSquares / maxIRLength);
-//
-//    // Target RMS of 0.1 (adjust to taste)
-//    float gain = 0.1f / rms;
-//    for (auto& s : defaultIR)
-//        s *= gain;
-//    
-//    loadImpulseResponse(defaultIR);
-    
+  DBG("!!!!!! CONSTRUCTOR CALLED - DEBUG BUILD !!!!!!");
 
-    
-    // Load IR from hardcoded path
-    juce::File irFile("/Users/izanagi/repos/SpectralConvolver/Assets/IR.wav");
+  juce::Logger::writeToLog("SPECTRAL CONVOLVER LOADED");
 
-    if (!loadImpulseResponseFromFile(irFile))
-    {
-        DBG("Failed to load IR from: " + irFile.getFullPathName());
-    }
+  // Create a file as proof the code ran
+  juce::File("/tmp/plugin_loaded.txt")
+      .replaceWithText("Plugin loaded at " +
+                       juce::Time::getCurrentTime().toString(true, true));
+
+  //  const int defaultIRLength = 4410; // 100ms at 44.1kHz
+  //  std::vector<float> defaultIR(defaultIRLength);
+  //
+  //
+  //  for (int i = 0; i < defaultIRLength; ++i) {
+  //    float t = static_cast<float>(i) / 44100.0f;
+  //    defaultIR[i] = std::exp(-t * 10.0f) * ((i == 0) ? 1.0f : 0.3f);
+  //  }
+  //
+  //  // Normalize
+  //  float maxVal = 0.0f;
+  //  for (auto &s : defaultIR)
+  //    maxVal = std::max(maxVal, std::abs(s));
+  //  if (maxVal > 0.0f)
+  //    for (auto &s : defaultIR)
+  //      s /= maxVal;
+  //
+
+  //    const int maxIRLength = 14000;
+  //    const int defaultIRLength = maxIRLength;
+  //    std::vector<float> defaultIR(defaultIRLength);
+  //
+  //    for (int i = 0; i < defaultIRLength; ++i)
+  //    {
+  //        float t = static_cast<float>(i) / 44100.0f;
+  //        defaultIR[i] = std::exp(-t * 3.0f) * ((i == 0) ? 1.0f : 0.2f);
+  //    }
+  //
+  //
+  //    float sumSquares = 0.0f;
+  //    for (auto& s : defaultIR)
+  //        sumSquares += s * s;
+  //    float rms = std::sqrt(sumSquares / maxIRLength);
+  //
+  //    // Target RMS of 0.1 (adjust to taste)
+  //    float gain = 0.1f / rms;
+  //    for (auto& s : defaultIR)
+  //        s *= gain;
+  //
+  //    loadImpulseResponse(defaultIR);
+
+  // Load IR from hardcoded path
+  juce::File irFile(
+      "/Users/izanagi/repos/spectral-convolution-plugin/assets/IR copy.wav");
+
+  if (!loadImpulseResponseFromFile(irFile)) {
+    DBG("Failed to load IR from: " + irFile.getFullPathName());
+  }
 }
 
 SpectralConvolverAudioProcessor::~SpectralConvolverAudioProcessor() {}
@@ -138,7 +134,8 @@ void SpectralConvolverAudioProcessor::changeProgramName(
 int SpectralConvolverAudioProcessor::calculateFFTOrder(int irLen,
                                                        int blockSize) {
   // FFT size must be >= blockSize + irLength
-  // 1 for overlap-add without aliasing We want the smallest power of 2 that satisfies this
+  // 1 for overlap-add without aliasing We want the smallest power of 2 that
+  // satisfies this
   const int minFFTSize = blockSize + irLen - 1;
 
   int order = 1;
@@ -218,28 +215,27 @@ bool SpectralConvolverAudioProcessor::isBusesLayoutSupported(
 }
 #endif
 
-void SpectralConvolverAudioProcessor::processBlock( juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages)
-{
-    
-    // FIRST LINE - must see this
-    static bool firstCall = true;
-    if (firstCall)
-    {
-      firstCall = false;
-      DBG("========== PROCESSBLOCK FIRST CALL ==========");
-      DBG("convolvers.size(): " + juce::String(convolvers.size()));
-      DBG("currentIR.size(): " + juce::String(currentIR.size()));
-      DBG("buffer samples: " + juce::String(buffer.getNumSamples()));
-      DBG("=============================================");
-    }
-    
+void SpectralConvolverAudioProcessor::processBlock(
+    juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) {
+
+  // FIRST LINE - must see this
+  static bool firstCall = true;
+  if (firstCall) {
+    firstCall = false;
+    DBG("========== PROCESSBLOCK FIRST CALL ==========");
+    DBG("convolvers.size(): " + juce::String(convolvers.size()));
+    DBG("currentIR.size(): " + juce::String(currentIR.size()));
+    DBG("buffer samples: " + juce::String(buffer.getNumSamples()));
+    DBG("=============================================");
+  }
+
   juce::ignoreUnused(midiMessages);
   juce::ScopedNoDenormals noDenormals;
 
   const auto totalNumInputChannels = getTotalNumInputChannels();
   const auto totalNumOutputChannels = getTotalNumOutputChannels();
   const auto numSamples = buffer.getNumSamples();
-    const auto wetGain = 147.0f;
+  const auto wetGain = 147.0f;
 
   // Clear any output channels that don't have corresponding inputs
   for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
@@ -271,72 +267,60 @@ void SpectralConvolverAudioProcessor::processBlock( juce::AudioBuffer<float> &bu
     if (dryWetMix < 1.0f) {
       drySignal.assign(channelData, channelData + numSamples);
     }
-      
-      
-      
-      
 
     // Process through convolver
     auto wetSignal = convolvers[channel]->processBlock(channelData, numSamples);
 
-      static int debugCounter = 0;
-      if (++debugCounter % 200 == 0)  // Log every few seconds
-      {
-          float wetPeak = 0.0f;
-          for (size_t i = 0; i < wetSignal.size(); ++i)
-              wetPeak = std::max(wetPeak, std::abs(wetSignal[i]));
-          
-          DBG("wetSignal size: " + juce::String(wetSignal.size()) +
-              ", peak: " + juce::String(wetPeak) +
-              ", numSamples: " + juce::String(numSamples));
+    static int debugCounter = 0;
+    if (++debugCounter % 200 == 0) // Log every few seconds
+    {
+      float wetPeak = 0.0f;
+      for (size_t i = 0; i < wetSignal.size(); ++i)
+        wetPeak = std::max(wetPeak, std::abs(wetSignal[i]));
+
+      DBG("wetSignal size: " + juce::String(wetSignal.size()) + ", peak: " +
+          juce::String(wetPeak) + ", numSamples: " + juce::String(numSamples));
+    }
+
+    if (++debugCounter % 200 == 0) {
+      bool hasNaN = false;
+      bool hasInf = false;
+      float maxVal = 0.0f;
+
+      for (size_t i = 0; i < wetSignal.size(); ++i) {
+        if (std::isnan(wetSignal[i]))
+          hasNaN = true;
+        if (std::isinf(wetSignal[i]))
+          hasInf = true;
+        maxVal = std::max(maxVal, std::abs(wetSignal[i]));
       }
-      
-      if (++debugCounter % 200 == 0)
-      {
-          bool hasNaN = false;
-          bool hasInf = false;
-          float maxVal = 0.0f;
-          
-          for (size_t i = 0; i < wetSignal.size(); ++i)
-          {
-              if (std::isnan(wetSignal[i])) hasNaN = true;
-              if (std::isinf(wetSignal[i])) hasInf = true;
-              maxVal = std::max(maxVal, std::abs(wetSignal[i]));
-          }
-          
-          DBG("wetSignal - size: " + juce::String(wetSignal.size()) +
-              ", max: " + juce::String(maxVal) +
-              ", NaN: " + juce::String(hasNaN ? "YES" : "no") +
-              ", Inf: " + juce::String(hasInf ? "no" : "no"));
-      }
-      
-      
-      
+
+      DBG("wetSignal - size: " + juce::String(wetSignal.size()) +
+          ", max: " + juce::String(maxVal) +
+          ", NaN: " + juce::String(hasNaN ? "YES" : "no") +
+          ", Inf: " + juce::String(hasInf ? "no" : "no"));
+    }
+
     const int outputSize =
         std::min(static_cast<int>(wetSignal.size()), numSamples);
 
     // Copy result back to buffer with dry/wet mix
-      if (dryWetMix >= 1.0f)
-      {
-        // 100% wet - just copy
+    if (dryWetMix >= 1.0f) {
+      // 100% wet - just copy
+      for (int i = 0; i < outputSize; ++i)
+        channelData[i] = wetSignal[i] * wetGain;
+
+      // DEBUG: Verify it actually got copied
+      static int copyCheck = 0;
+      if (++copyCheck % 200 == 0) {
+        float bufferPeak = 0.0f;
         for (int i = 0; i < outputSize; ++i)
-          channelData[i] = wetSignal[i] * wetGain;
-        
-        // DEBUG: Verify it actually got copied
-        static int copyCheck = 0;
-        if (++copyCheck % 200 == 0)
-        {
-          float bufferPeak = 0.0f;
-          for (int i = 0; i < outputSize; ++i)
-            bufferPeak = std::max(bufferPeak, std::abs(channelData[i]));
-          DBG("AFTER COPY - buffer peak: " + juce::String(bufferPeak));
-        }
+          bufferPeak = std::max(bufferPeak, std::abs(channelData[i]));
+        DBG("AFTER COPY - buffer peak: " + juce::String(bufferPeak));
       }
-    else if (dryWetMix <= 0.0f) {
+    } else if (dryWetMix <= 0.0f) {
       // 100% dry - leave buffer unchanged (already has dry signal)
-    }
-    else
-    {
+    } else {
       // Mix dry and wet
       const float wet = dryWetMix;
       const float dry = 1.0f - dryWetMix;
@@ -344,7 +328,7 @@ void SpectralConvolverAudioProcessor::processBlock( juce::AudioBuffer<float> &bu
       for (int i = 0; i < outputSize; ++i)
         channelData[i] = dry * drySignal[i] + (wet * wetSignal[i] * wetGain);
     }
-      
+
     // Zero any remaining samples
     for (int i = outputSize; i < numSamples; ++i)
       channelData[i] = 0.0f;
