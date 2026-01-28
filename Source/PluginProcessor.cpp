@@ -1,7 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//==============================================================================
 SpectralConvolverAudioProcessor::SpectralConvolverAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
     : AudioProcessor(
@@ -77,11 +76,10 @@ SpectralConvolverAudioProcessor::SpectralConvolverAudioProcessor()
     {
         DBG("Failed to load IR from: " + irFile.getFullPathName());
     }
-}g
+}
 
 SpectralConvolverAudioProcessor::~SpectralConvolverAudioProcessor() {}
 
-//==============================================================================
 const juce::String SpectralConvolverAudioProcessor::getName() const {
   return JucePlugin_Name;
 }
