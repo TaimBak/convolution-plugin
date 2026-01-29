@@ -1,13 +1,3 @@
-/*
-  ==============================================================================
-
-    FreqDomainConvolver.h
-    Created: 20 Nov 2025 10:41:43am
-    Author:  Austin Clark
-
-  ==============================================================================
-*/
-
 #pragma once
 #include <juce_core/juce_core.h>
 #include <juce_dsp/juce_dsp.h>

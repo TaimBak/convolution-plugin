@@ -1,17 +1,6 @@
-/*
-  ==============================================================================
+#include "TimeDomainConvolver.h"
 
-    PluginAlgorithm.cpp
-    Created: 10 Sep 2025 2:22:18pm
-    Author:  izanagi
-
-  ==============================================================================
-*/
-
-#include "PluginAlgorithm.h"
-
-#define MIX 0.7f
-
+#define MIX 0.7
 
 TimeDomainConvolver::TimeDomainConvolver(const std::vector<float>& inputIR)
     : ir(inputIR), irSize(ir.size()), delayBuffer(std::max<std::size_t>(1, ir.size()), 0.0f), writeIndex(0)
